@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jogo - Fortune Tiger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6 space-y-6">
+
+  <h1 class="text-4xl font-bold text-yellow-400 mt-4">🎮 Fortune Tiger</h1>
+
+  <div class="text-xl font-semibold" id="saldo">💰 Saldo: -- fichas</div>
+  <div class="text-green-400 font-medium" id="resultado"></div>
+
+  <!-- Bônus diário -->
+  <div class="bg-gray-800 p-4 rounded-lg shadow-lg w-full max-w-md text-center">
+    <button class="bg-yellow-400 text-black font-bold px-4 py-2 rounded hover:bg-yellow-500" onclick="coletarBonus()">🎁 Recolher Bônus Diário</button>
+    <p class="mt-2 text-sm text-gray-300" id="bonusStatus"></p>
+  </div>
+
+  <!-- Iframe do jogo -->
+  <div class="w-full max-w-4xl h-[400px] rounded-xl overflow-hidden border-2 border-yellow-500 shadow-xl">
+    <iframe src="https://exemplo.com/jogo/fortune-tiger" class="w-full h-full"></iframe>
+  </div>
+
+  <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-2 rounded-full shadow-lg transition" onclick="apostar()">Apostar 100 fichas</button>
+
+  <!-- Ranking -->
+  <h2 class="text-2xl font-bold text-yellow-300 mt-10">🏆 Ranking dos Jogadores</h2>
+  <div id="ranking" class="w-full max-w-xl mt-2"></div>
+
+  <script>
+    const usuario = localStorage.getItem('usuarioAtual');
+    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || {};
+    let bonusKey = `bonus_${usuario}`;
+
+    if (!usuario || !usuarios[usuario]) {
+      alert("Você precisa estar logado.");
+      window.location.href = "login.html";
+    }
+
+    function atualizarSaldo() {
+      document.getElementById('saldo').textContent = `💰 Saldo: ${usuarios[usuario].fichas} fichas`;
+    }
+
+    function apostar() {
+      if (usuarios[usuario].fichas < 100) {
+        alert("Saldo insuficiente!");
+        return;
+      }
+
+      usuarios[usuario].fichas -= 100;
+      const chances = [0, 0, 0, 50, 100, 150, 200, 300, 500];
+      const ganho = chances[Math.floor(Math.random() * chances.length)];
+      usuarios[usuario].fichas += ganho;
+
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      const msg = ganho === 0 ? "❌ Você perdeu a aposta!" : `✅ Você ganhou ${ganho} fichas!`;
+      document.getElementById("resultado").textContent = msg;
+
+      atualizarSaldo();
+      exibirRanking();
+    }
+
+    function coletarBonus() {
+      const agora = Date.now();
+      const ultimoBonus = parseInt(localStorage.getItem(bonusKey)) || 0;
+      const horas24 = 24 * 60 * 60 * 1000;
+
+      if (agora - ultimoBonus >= horas24) {
+        const bonus = Math.floor(Math.random() * 201) + 100;
+        usuarios[usuario].fichas += bonus;
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        localStorage.setItem(bonusKey, agora);
+        atualizarSaldo();
+        document.getElementById("bonusStatus").textContent = `🎉 Você recebeu ${bonus} fichas de bônus!`;
+      } else {
+        const tempoRestante = horas24 - (agora - ultimoBonus);
+        const horas = Math.floor(tempoRestante / (60 * 60 * 1000));
+        const minutos = Math.floor((tempoRestante % (60 * 60 * 1000)) / (60 * 1000));
+        document.getElementById("bonusStatus").textContent =
+          `⏳ Bônus disponível em ${horas}h ${minutos}min.`;
+      }
+    }
+
+    function exibirRanking() {
+      const lista = Object.entries(usuarios)
+        .map(([nome, dados]) => ({ nome, fichas: dados.fichas }))
+        .sort((a, b) => b.fichas - a.fichas)
+        .slice(0, 5);
+
+      let html = `<table class="table-auto w-full border-collapse border border-gray-700">
+        <thead class="bg-gray-700 text-yellow-400">
+          <tr><th class="px-4 py-2">#</th><th class="px-4 py-2">Jogador</th><th class="px-4 py-2">Fichas</th></tr>
+        </thead><tbody>`;
+
+      lista.forEach((jogador, i) => {
+        html += `<tr class="text-center border-t border-gray-700">
+          <td class="py-1">${i + 1}</td>
+          <td>${jogador.nome}</td>
+          <td>${jogador.fichas}</td></tr>`;
+      });
+
+      html += "</tbody></table>";
+      document.getElementById("ranking").innerHTML = html;
+    }
+
+    atualizarSaldo();
+    exibirRanking();
+  </script>
+</body>
+</html>

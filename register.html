@@ -1,0 +1,39 @@
+<!-- register.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro</title>
+  <style>
+    body { background: #111; color: #fff; text-align: center; font-family: sans-serif; padding: 50px; }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>📝 Cadastro</h2>
+  <input type="text" id="username" placeholder="Escolha um usuário"><br>
+  <input type="password" id="password" placeholder="Crie uma senha"><br>
+  <button onclick="cadastrar()">Cadastrar</button>
+
+  <script>
+    function cadastrar() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const usuarios = JSON.parse(localStorage.getItem('usuarios')) || {};
+      if (usuarios[user]) {
+        alert("Usuário já existe.");
+      } else {
+        usuarios[user] = { senha: pass, fichas: 1000 };
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        alert("Cadastro realizado! Faça login.");
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painel de Administração</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6">
+
+  <h1 class="text-3xl font-bold text-yellow-400 mb-6">⚙️ Painel de Administração</h1>
+
+  <!-- Login Admin -->
+  <div id="loginAdmin" class="w-full max-w-md bg-gray-800 p-6 rounded shadow-lg">
+    <h2 class="text-xl mb-4">Login Admin</h2>
+    <input id="adminUser" type="text" placeholder="Usuário" class="w-full p-2 mb-4 rounded bg-gray-700 text-white" />
+    <input id="adminPass" type="password" placeholder="Senha" class="w-full p-2 mb-4 rounded bg-gray-700 text-white" />
+    <button onclick="loginAdmin()" class="bg-yellow-400 text-black font-bold px-4 py-2 rounded hover:bg-yellow-500 w-full">Entrar</button>
+    <p id="loginMsg" class="text-red-500 mt-2"></p>
+  </div>
+
+  <!-- Painel admin após login -->
+  <div id="painelAdmin" class="hidden w-full max-w-4xl">
+
+    <button onclick="logoutAdmin()" class="mb-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white font-bold">Sair</button>
+
+    <table class="table-auto w-full border-collapse border border-gray-700">
+      <thead class="bg-gray-700 text-yellow-400">
+        <tr>
+          <th class="px-4 py-2">Jogador</th>
+          <th class="px-4 py-2">Fichas</th>
+          <th class="px-4 py-2">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="usuariosTabela"></tbody>
+    </table>
+
+    <button onclick="resetarDados()" class="mt-6 bg-red-700 hover:bg-red-800 px-4 py-2 rounded font-bold">Resetar TODOS os dados</button>
+
+  </div>
+
+  <script>
+    const adminUser = "admin";
+    const adminPass = "1234";
+
+    const loginDiv = document.getElementById("loginAdmin");
+    const painelDiv = document.getElementById("painelAdmin");
+    const loginMsg = document.getElementById("loginMsg");
+
+    function loginAdmin() {
+      const user = document.getElementById("adminUser").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
+
+      if(user === adminUser && pass === adminPass) {
+        loginDiv.classList.add("hidden");
+        painelDiv.classList.remove("hidden");
+        carregarUsuarios();
+      } else {
+        loginMsg.textContent = "Usuário ou senha incorretos.";
+      }
+    }
+
+    function logoutAdmin() {
+      painelDiv.classList.add("hidden");
+      loginDiv.classList.remove("hidden");
+      loginMsg.textContent = "";
+      document.getElementById("adminUser").value = "";
+      document.getElementById("adminPass").value = "";
+    }
+
+    function carregarUsuarios() {
+      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || {};
+      const tbody = document.getElementById("usuariosTabela");
+      tbody.innerHTML = "";
+
+      for (const [nome, dados] of Object.entries(usuarios)) {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td class="border px-4 py-2">${nome}</td>
+          <td class="border px-4 py-2">
+            <input type="number" min="0" value="${dados.fichas}" class="bg-gray-800 text-white p-1 w-20 rounded" onchange="editarFichas('${nome}', this.value)" />
+          </td>
+          <td class="border px-4 py-2 space-x-2 text-center">
+            <button class="bg-red-600 hover:bg-red-700 px-2 py-1 rounded" onclick="removerUsuario('${nome}')">Remover</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    function editarFichas(nome, valor) {
+      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || {};
+      const fichas = parseInt(valor);
+      if (fichas >= 0) {
+        usuarios[nome].fichas = fichas;
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+        alert(`Fichas de ${nome} atualizadas para ${fichas}`);
+      } else {
+        alert("Valor inválido");
+        carregarUsuarios();
+      }
+    }
+
+    function removerUsuario(nome) {
+      if (confirm(`Deseja realmente remover o jogador "${nome}"?`)) {
+        const usuarios = JSON.parse(localStorage.getItem("usuarios")) || {};
+        delete usuarios[nome];
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+        carregarUsuarios();
+      }
+    }
+
+    function resetarDados() {
+      if (confirm("Tem certeza que deseja apagar TODOS os dados?")) {
+        localStorage.removeItem("usuarios");
+        carregarUsuarios();
+        alert("Dados removidos com sucesso.");
+      }
+    }
+  </script>
+</body>
+</html>

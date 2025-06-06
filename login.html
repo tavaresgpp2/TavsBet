@@ -1,0 +1,37 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body { background: #111; color: #fff; text-align: center; font-family: sans-serif; padding: 50px; }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔐 Login</h2>
+  <input type="text" id="username" placeholder="Usuário"><br>
+  <input type="password" id="password" placeholder="Senha"><br>
+  <button onclick="login()">Entrar</button>
+
+  <script>
+    function login() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const saved = JSON.parse(localStorage.getItem('usuarios')) || {};
+      if (saved[user] && saved[user].senha === pass) {
+        localStorage.setItem('usuarioAtual', user);
+        window.location.href = "jogo.html";
+      } else {
+        alert("Usuário ou senha inválidos.");
+      }
+    }
+  </script>
+</body>
+</html>
